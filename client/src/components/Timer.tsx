@@ -5,6 +5,47 @@ import { BuildingType } from '../core/types'
 import { playCompletionSound, unlockAudio } from '../utils/sound'
 import './Timer.css'
 
+// Web Worker code as string - runs in background even when tab is hidden
+const workerCode = `
+let intervalId = null;
+let targetTime = 0;
+let completed = false;
+
+self.onmessage = (e) => {
+  const { type, startTime, targetMs } = e.data;
+
+  if (type === 'start') {
+    targetTime = startTime + targetMs;
+    completed = false;
+
+    if (intervalId) clearInterval(intervalId);
+
+    intervalId = setInterval(() => {
+      const now = Date.now();
+      if (!completed && now >= targetTime) {
+        completed = true;
+        self.postMessage({ type: 'complete' });
+      }
+    }, 500);
+  } else if (type === 'stop') {
+    if (intervalId) {
+      clearInterval(intervalId);
+      intervalId = null;
+    }
+  }
+};
+`
+
+// Create worker from blob
+let timerWorker: Worker | null = null
+function getTimerWorker(): Worker {
+  if (!timerWorker) {
+    const blob = new Blob([workerCode], { type: 'application/javascript' })
+    timerWorker = new Worker(URL.createObjectURL(blob))
+  }
+  return timerWorker
+}
+
 const TYPE_LABELS: Record<BuildingType, string> = {
   osix: 'OSIX',
   shearn: 'SHEARN',
@@ -51,6 +92,36 @@ export default function Timer() {
     return () => clearInterval(interval)
   }, [isRunning])
 
+  // Web Worker for background completion detection
+  useEffect(() => {
+    if (!isRunning) {
+      getTimerWorker().postMessage({ type: 'stop' })
+      return
+    }
+
+    const worker = getTimerWorker()
+    const startTime = useTimerStore.getState().startTime
+
+    if (startTime) {
+      worker.postMessage({
+        type: 'start',
+        startTime,
+        targetMs: targetMinutes * 60 * 1000
+      })
+
+      worker.onmessage = (e) => {
+        if (e.data.type === 'complete' && !hasPlayedSound.current) {
+          playCompletionSound()
+          hasPlayedSound.current = true
+        }
+      }
+    }
+
+    return () => {
+      worker.postMessage({ type: 'stop' })
+    }
+  }, [isRunning, targetMinutes])
+
   // Reset sound flag when timer stops
   useEffect(() => {
     if (!isRunning) {
@@ -64,6 +135,17 @@ export default function Timer() {
   const isOvertime = elapsedSeconds >= targetSeconds
   const overtimeSeconds = Math.max(0, elapsedSeconds - targetSeconds)
 
+  // Function to check and play sound if needed
+  const checkAndPlaySound = useCallback(() => {
+    if (isRunning && !hasPlayedSound.current) {
+      const currentElapsed = getElapsedSeconds()
+      if (currentElapsed >= targetMinutes * 60) {
+        playCompletionSound()
+        hasPlayedSound.current = true
+      }
+    }
+  }, [isRunning, getElapsedSeconds, targetMinutes])
+
   // Play sound when reaching target (only once)
   useEffect(() => {
     if (isRunning && isOvertime && !hasPlayedSound.current) {
@@ -71,6 +153,18 @@ export default function Timer() {
       hasPlayedSound.current = true
     }
   }, [isRunning, isOvertime])
+
+  // Handle tab visibility change - check if we missed the completion while in background
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        checkAndPlaySound()
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+  }, [checkAndPlaySound])
 
   // Auto-stop if overtime exceeds 2 hours
   useEffect(() => {

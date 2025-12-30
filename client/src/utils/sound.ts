@@ -1,31 +1,47 @@
 // Singleton AudioContext - browsers require user interaction to unlock
 let audioContext: AudioContext | null = null
 
-// Call this on user interaction (e.g., clicking START) to unlock audio
+// Call this on user interaction (e.g., clicking START) to unlock audio and request notification permission
 export function unlockAudio() {
-  if (audioContext) return
+  // Unlock AudioContext
+  if (!audioContext) {
+    try {
+      audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
 
-  try {
-    audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
+      // Create and play a silent buffer to unlock
+      const buffer = audioContext.createBuffer(1, 1, 22050)
+      const source = audioContext.createBufferSource()
+      source.buffer = buffer
+      source.connect(audioContext.destination)
+      source.start(0)
 
-    // Create and play a silent buffer to unlock
-    const buffer = audioContext.createBuffer(1, 1, 22050)
-    const source = audioContext.createBufferSource()
-    source.buffer = buffer
-    source.connect(audioContext.destination)
-    source.start(0)
-
-    // Resume if suspended (required by some browsers)
-    if (audioContext.state === 'suspended') {
-      audioContext.resume()
+      // Resume if suspended (required by some browsers)
+      if (audioContext.state === 'suspended') {
+        audioContext.resume()
+      }
+    } catch (e) {
+      console.warn('Could not unlock audio:', e)
     }
-  } catch (e) {
-    console.warn('Could not unlock audio:', e)
+  }
+
+  // Request notification permission for background alerts
+  if ('Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission()
   }
 }
 
 // Generate a "tin" completion sound using Web Audio API
 export function playCompletionSound() {
+  // If tab is hidden, show notification instead (browsers block audio in background)
+  if (document.hidden && 'Notification' in window && Notification.permission === 'granted') {
+    new Notification('FinCity', {
+      body: 'Tiempo completado!',
+      icon: '/favicon.ico',
+      tag: 'timer-complete', // Prevents duplicate notifications
+      requireInteraction: false
+    })
+  }
+
   try {
     // Create context if needed (fallback)
     if (!audioContext) {

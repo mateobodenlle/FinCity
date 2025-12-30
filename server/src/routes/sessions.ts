@@ -82,13 +82,15 @@ router.post('/', (req, res) => {
     const newShearnMultiplier = calculateShearnMultiplier(dayNumber)
 
     // Update last session for this type
+    // Note: 'estudio' type maps to 'study_last_session' field
+    const fieldName = type === 'estudio' ? 'study' : type
     const updateParams: Record<string, string | null> = {
       study_last_session: null,
       osix_last_session: null,
       shearn_last_session: null,
       now
     }
-    updateParams[`${type}_last_session`] = now
+    updateParams[`${fieldName}_last_session`] = now
     queries.updateLastSession.run(updateParams)
 
     // Update shearn multiplier
