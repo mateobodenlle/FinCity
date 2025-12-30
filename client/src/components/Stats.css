@@ -1,0 +1,100 @@
+.stats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.money-display {
+  text-align: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.total-money {
+  font-size: 1.6rem;
+  font-weight: bold;
+  text-shadow: 0 0 15px var(--text-primary);
+}
+
+.rent-per-second {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.day-counter {
+  text-align: center;
+  padding: 0.4rem;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border);
+  font-size: 0.8rem;
+}
+
+.stats-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.stat-row {
+  display: grid;
+  grid-template-columns: 70px 90px 70px 55px;
+  gap: 0.3rem;
+  padding: 0.4rem;
+  background-color: var(--bg-secondary);
+  border-left: 3px solid;
+  font-size: 0.75rem;
+}
+
+.stat-row.osix {
+  border-color: var(--osix-color);
+}
+
+.stat-row.osix .stat-label {
+  color: var(--osix-color);
+}
+
+.stat-row.shearn {
+  border-color: var(--shearn-color);
+}
+
+.stat-row.shearn .stat-label {
+  color: var(--shearn-color);
+}
+
+.stat-row.estudio {
+  border-color: var(--estudio-color);
+}
+
+.stat-row.estudio .stat-label {
+  color: var(--estudio-color);
+}
+
+.stat-label {
+  font-weight: bold;
+}
+
+.stat-count {
+  color: var(--text-secondary);
+}
+
+.stat-rent {
+  color: var(--text-primary);
+}
+
+.stat-mult {
+  color: var(--text-dim);
+}
+
+.stat-mult.tax-active {
+  color: var(--danger);
+  font-weight: bold;
+}
+
+.tax-warning {
+  padding: 0.4rem;
+  background-color: rgba(255, 68, 68, 0.1);
+  border: 1px solid var(--danger);
+  color: var(--danger);
+  text-align: center;
+  font-size: 0.75rem;
+}

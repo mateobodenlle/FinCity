@@ -1,0 +1,132 @@
+.skyline {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.skyline-viewport {
+  flex: 1;
+  overflow-x: auto;
+  overflow-y: hidden;
+  position: relative;
+  background: linear-gradient(to bottom,
+    #0a0a15 0%,
+    #0f0f1a 50%,
+    #141420 100%
+  );
+}
+
+.skyline-layers {
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding-bottom: 15px;
+}
+
+.layer {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5ch;
+  padding: 0 1ch;
+  position: absolute;
+  bottom: 15px;
+  left: 0;
+  white-space: nowrap;
+}
+
+.layer-1 {
+  z-index: 3;
+  opacity: 1;
+}
+
+.layer-2 {
+  z-index: 2;
+  opacity: 0.7;
+  transform: translateY(-30px);
+}
+
+.layer-3 {
+  z-index: 1;
+  opacity: 0.4;
+  transform: translateY(-55px);
+}
+
+.layer.empty {
+  justify-content: center;
+  width: 100%;
+}
+
+.empty-msg {
+  color: var(--text-dim);
+  font-size: 0.8rem;
+}
+
+.building {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1;
+  font-size: 0.65rem;
+}
+
+.building-line {
+  white-space: pre;
+}
+
+/* Building type colors */
+.building.osix {
+  color: var(--osix-color);
+  text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+}
+
+.building.shearn {
+  color: var(--shearn-color);
+  text-shadow: 0 0 5px rgba(0, 255, 136, 0.3);
+}
+
+.building.estudio {
+  color: var(--estudio-color);
+}
+
+/* Status modifiers */
+.building.warning {
+  opacity: 0.7;
+  animation: flicker 2s infinite;
+}
+
+.building.abandoned {
+  opacity: 0.4;
+  filter: grayscale(50%);
+}
+
+@keyframes flicker {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 0.5; }
+}
+
+.ground-line {
+  position: absolute;
+  bottom: 5px;
+  left: 0;
+  color: var(--text-dim);
+  font-size: 0.6rem;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.skyline-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  color: var(--text-dim);
+}
+
+.skyline-empty pre {
+  text-align: center;
+  line-height: 1.2;
+  font-size: 0.7rem;
+}

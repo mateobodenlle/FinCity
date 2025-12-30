@@ -1,0 +1,43 @@
+.app {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem;
+  gap: 0.5rem;
+  overflow: hidden;
+}
+
+.app-header {
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.logo {
+  color: var(--text-primary);
+  font-size: 0.45rem;
+  line-height: 1.1;
+  text-shadow: 0 0 10px var(--text-primary);
+}
+
+.app-main {
+  display: flex;
+  gap: 0.5rem;
+  flex: 1;
+  min-height: 0;
+}
+
+.left-panel {
+  width: 340px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex-shrink: 0;
+  height: 100%;
+}
+
+.right-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}

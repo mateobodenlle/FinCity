@@ -1,0 +1,106 @@
+.status-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.today-progress {
+  padding: 0.4rem;
+  background-color: var(--bg-secondary);
+}
+
+.today-label {
+  font-size: 0.8rem;
+  margin-bottom: 0.3rem;
+}
+
+.progress-container {
+  height: 8px;
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.progress-container .progress-fill {
+  height: 100%;
+  background-color: var(--text-primary);
+  transition: width 0.3s;
+}
+
+.progress-target {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  margin-top: 0.2rem;
+}
+
+.type-status-grid {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.type-status {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.4rem;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border);
+  font-size: 0.75rem;
+}
+
+.type-status .type-name {
+  font-weight: bold;
+  margin-bottom: 0.15rem;
+}
+
+.type-status .time-until {
+  font-size: 0.7rem;
+}
+
+/* Status colors */
+.type-status.ok {
+  border-color: var(--text-primary);
+}
+
+.type-status.ok .time-until {
+  color: var(--text-primary);
+}
+
+.type-status.warning {
+  border-color: var(--warning);
+  background-color: rgba(255, 170, 0, 0.1);
+}
+
+.type-status.warning .time-until {
+  color: var(--warning);
+}
+
+.type-status.danger {
+  border-color: var(--danger);
+  background-color: rgba(255, 68, 68, 0.1);
+  animation: pulse-danger 1s infinite;
+}
+
+.type-status.danger .time-until {
+  color: var(--danger);
+  font-weight: bold;
+}
+
+@keyframes pulse-danger {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* Type specific colors for names */
+.type-status.osix .type-name {
+  color: var(--osix-color);
+}
+
+.type-status.shearn .type-name {
+  color: var(--shearn-color);
+}
+
+.type-status.estudio .type-name {
+  color: var(--estudio-color);
+}
