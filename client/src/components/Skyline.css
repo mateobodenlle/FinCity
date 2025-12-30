@@ -17,51 +17,15 @@
   );
 }
 
-.skyline-layers {
-  position: relative;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  padding-bottom: 15px;
-}
-
-.layer {
+.skyline-buildings {
+  position: absolute;
+  bottom: 15px;
+  left: 0;
   display: flex;
   align-items: flex-end;
   gap: 0.5ch;
   padding: 0 1ch;
-  position: absolute;
-  bottom: 15px;
-  left: 0;
   white-space: nowrap;
-}
-
-.layer-1 {
-  z-index: 3;
-  opacity: 1;
-}
-
-.layer-2 {
-  z-index: 2;
-  opacity: 0.7;
-  transform: translateY(-30px);
-}
-
-.layer-3 {
-  z-index: 1;
-  opacity: 0.4;
-  transform: translateY(-55px);
-}
-
-.layer.empty {
-  justify-content: center;
-  width: 100%;
-}
-
-.empty-msg {
-  color: var(--text-dim);
-  font-size: 0.8rem;
 }
 
 .building {
@@ -88,12 +52,16 @@
   border: 1px solid var(--border);
   padding: 0.4rem 0.6rem;
   white-space: nowrap;
-  z-index: 100;
+  z-index: 9999;
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.15s, visibility 0.15s;
   pointer-events: none;
   margin-bottom: 0.3rem;
+}
+
+.building:hover {
+  z-index: 1000 !important;
 }
 
 .building:hover .building-tooltip {
@@ -128,6 +96,24 @@
 .tooltip-time {
   font-size: 0.65rem;
   color: var(--text-dim);
+}
+
+.tooltip-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 0.3rem 0;
+}
+
+.tooltip-rent {
+  font-size: 0.75rem;
+  color: var(--accent);
+  font-weight: bold;
+}
+
+.tooltip-generated {
+  font-size: 0.7rem;
+  color: var(--text-primary);
+  opacity: 0.8;
 }
 
 /* Building type colors */

@@ -9,7 +9,7 @@ router.get('/', (_req, res) => {
     const buildings = queries.getAllBuildingsWithSession.all()
 
     // Transform to camelCase for frontend
-    const transformed = buildings.map((b: Record<string, unknown>) => ({
+    const transformed = (buildings as Record<string, unknown>[]).map((b) => ({
       id: b.id,
       sessionId: b.session_id,
       type: b.type,

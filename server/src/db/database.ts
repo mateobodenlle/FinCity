@@ -82,6 +82,10 @@ export const queries = {
     SELECT MAX(position) as max_pos FROM buildings WHERE layer = @layer
   `),
 
+  getMaxPositionGlobal: db.prepare(`
+    SELECT MAX(position) as max_pos FROM buildings
+  `),
+
   updateBuildingStatus: db.prepare(`
     UPDATE buildings SET status = @status, degraded_at = @degraded_at WHERE id = @id
   `),

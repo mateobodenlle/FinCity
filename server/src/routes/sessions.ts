@@ -60,8 +60,8 @@ router.post('/', (req, res) => {
 
     const layer = getLayerForSize(size)
 
-    // Get next position in layer
-    const maxPosResult = queries.getMaxPositionInLayer.get({ layer }) as { max_pos: number | null }
+    // Get next position globally (not per-layer, so buildings don't overlap)
+    const maxPosResult = queries.getMaxPositionGlobal.get() as { max_pos: number | null }
     const position = (maxPosResult?.max_pos ?? -1) + 1
 
     // Create building
