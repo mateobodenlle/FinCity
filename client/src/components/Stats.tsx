@@ -79,7 +79,7 @@ export default function Stats() {
 
       {citySleeping && (
         <div className="sleep-warning">
-          CIUDAD DORMIDA: -75% rendimiento
+          CIUDAD DORMIDA: -90% rendimiento
         </div>
       )}
 

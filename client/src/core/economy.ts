@@ -8,9 +8,9 @@ export const BASE_RENT: Record<BuildingSize, number> = {
   XL: 1.50
 }
 
-// Sleep mode: city sleeps after 1h 4min of inactivity, reduces rent to 25%
-export const SLEEP_THRESHOLD_HOURS = 64 / 60 // 1h 4min
-export const SLEEP_PENALTY = 0.25
+// Sleep mode: city sleeps after 45min of inactivity, reduces rent to 10%
+export const SLEEP_THRESHOLD_HOURS = 45 / 60 // 45min
+export const SLEEP_PENALTY = 0.10
 
 // Size thresholds in minutes
 export function getSizeFromDuration(minutes: number): BuildingSize {
@@ -93,9 +93,6 @@ export function isStudyTaxActive(studyLastSession: string | null): boolean {
 
 // Check if city is sleeping (no session of any type in 1h 4min)
 export function isCitySleeping(gameState: GameState): boolean {
-  // TEMP: Force sleep mode for testing
-  return true
-
   const { studyLastSession, osixLastSession, shearnLastSession } = gameState
 
   // Find the most recent session

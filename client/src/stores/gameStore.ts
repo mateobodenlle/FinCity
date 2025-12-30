@@ -123,20 +123,52 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   },
 
   startRentLoop: () => {
-    const interval = setInterval(() => {
-      const { rentPerSecond, updateMoney } = get()
-      if (rentPerSecond > 0) {
-        // Update every 100ms, so divide by 10
-        updateMoney(rentPerSecond / 10)
-      }
-    }, 100)
+    // Track last update time for accurate background rent calculation
+    let lastUpdateTime = Date.now()
 
-    // Check sleep status and recalculate rents every 30 seconds
+    // Calculate and add rent based on actual elapsed time
+    const calculateRent = () => {
+      const now = Date.now()
+      const elapsedSeconds = (now - lastUpdateTime) / 1000
+      lastUpdateTime = now
+
+      const { rentPerSecond, updateMoney } = get()
+      if (rentPerSecond > 0 && elapsedSeconds > 0) {
+        // Add rent for actual elapsed time (works even after background throttling)
+        updateMoney(rentPerSecond * elapsedSeconds)
+      }
+    }
+
+    // UI update interval (may be throttled in background, that's ok)
+    const interval = setInterval(calculateRent, 100)
+
+    // Handle tab visibility change - catch up on missed rent when returning
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        // Recalculate rent for time spent in background
+        calculateRent()
+
+        // Also check sleep status when returning
+        const { buildings, gameState } = get()
+        const newSleepingState = isCitySleeping(gameState)
+        const studyTax = isStudyTaxActive(gameState.studyLastSession)
+        const rentBreakdown = getRentBreakdown(buildings, gameState, studyTax, newSleepingState)
+
+        set({
+          citySleeping: newSleepingState,
+          rentPerSecond: rentBreakdown.osix + rentBreakdown.shearn,
+          osixRent: rentBreakdown.osix,
+          shearnRent: rentBreakdown.shearn
+        })
+      }
+    }
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+
+    // Check sleep status periodically
     const sleepCheckInterval = setInterval(() => {
       const { buildings, gameState, citySleeping } = get()
       const newSleepingState = isCitySleeping(gameState)
 
-      // Only update if sleep state changed
       if (newSleepingState !== citySleeping) {
         const studyTax = isStudyTaxActive(gameState.studyLastSession)
         const rentBreakdown = getRentBreakdown(buildings, gameState, studyTax, newSleepingState)
@@ -164,6 +196,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       clearInterval(interval)
       clearInterval(sleepCheckInterval)
       clearInterval(saveInterval)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
   }
 }))
