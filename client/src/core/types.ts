@@ -13,6 +13,8 @@ export interface Building {
   createdAt: string
   degradedAt: string | null
   status: BuildingStatus
+  durationMin?: number
+  sessionStartedAt?: string
 }
 
 export interface Session {

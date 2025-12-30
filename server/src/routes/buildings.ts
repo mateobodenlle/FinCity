@@ -3,10 +3,10 @@ import { queries } from '../db/database.js'
 
 const router = Router()
 
-// Get all buildings
+// Get all buildings with session data
 router.get('/', (_req, res) => {
   try {
-    const buildings = queries.getAllBuildings.all()
+    const buildings = queries.getAllBuildingsWithSession.all()
 
     // Transform to camelCase for frontend
     const transformed = buildings.map((b: Record<string, unknown>) => ({
@@ -19,7 +19,9 @@ router.get('/', (_req, res) => {
       position: b.position,
       createdAt: b.created_at,
       degradedAt: b.degraded_at,
-      status: b.status
+      status: b.status,
+      durationMin: b.duration_min,
+      sessionStartedAt: b.session_started_at
     }))
 
     res.json(transformed)

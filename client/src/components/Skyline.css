@@ -70,10 +70,64 @@
   align-items: center;
   line-height: 1;
   font-size: 0.65rem;
+  position: relative;
+  cursor: pointer;
 }
 
 .building-line {
   white-space: pre;
+}
+
+/* Tooltip */
+.building-tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--bg-panel);
+  border: 1px solid var(--border);
+  padding: 0.4rem 0.6rem;
+  white-space: nowrap;
+  z-index: 100;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.15s, visibility 0.15s;
+  pointer-events: none;
+  margin-bottom: 0.3rem;
+}
+
+.building:hover .building-tooltip {
+  opacity: 1;
+  visibility: visible;
+}
+
+.tooltip-type {
+  font-weight: bold;
+  font-size: 0.8rem;
+  margin-bottom: 0.2rem;
+}
+
+.tooltip-type.osix {
+  color: var(--osix-color);
+}
+
+.tooltip-type.shearn {
+  color: var(--shearn-color);
+}
+
+.tooltip-type.estudio {
+  color: var(--estudio-color);
+}
+
+.tooltip-duration {
+  font-size: 0.75rem;
+  color: var(--text-primary);
+  margin-bottom: 0.1rem;
+}
+
+.tooltip-time {
+  font-size: 0.65rem;
+  color: var(--text-dim);
 }
 
 /* Building type colors */

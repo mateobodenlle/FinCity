@@ -1,8 +1,32 @@
 import { useMemo } from 'react'
 import { useGameStore } from '../stores/gameStore'
-import { Building } from '../core/types'
+import { Building, BuildingType } from '../core/types'
 import { getBuildingArt, getBuildingHeight } from '../ascii/buildings'
 import './Skyline.css'
+
+const TYPE_LABELS: Record<BuildingType, string> = {
+  osix: 'OSIX',
+  shearn: 'SHEARN',
+  estudio: 'ESTUDIO'
+}
+
+function formatDuration(minutes: number): string {
+  const hours = Math.floor(minutes / 60)
+  const mins = minutes % 60
+  if (hours > 0) {
+    return `${hours}h ${mins}min`
+  }
+  return `${mins}min`
+}
+
+function formatTimestamp(isoString: string): string {
+  const date = new Date(isoString)
+  const day = date.getDate().toString().padStart(2, '0')
+  const month = (date.getMonth() + 1).toString().padStart(2, '0')
+  const hours = date.getHours().toString().padStart(2, '0')
+  const mins = date.getMinutes().toString().padStart(2, '0')
+  return `${day}/${month} ${hours}:${mins}`
+}
 
 interface LayerProps {
   buildings: Building[]
@@ -39,6 +63,17 @@ function Layer({ buildings, layerNum }: LayerProps) {
             className={`building ${building.type} ${building.status}`}
             style={{ paddingTop: `${paddingTop * 1.2}em` }}
           >
+            <div className="building-tooltip">
+              <div className={`tooltip-type ${building.type}`}>
+                {TYPE_LABELS[building.type]}
+              </div>
+              <div className="tooltip-duration">
+                {building.durationMin ? formatDuration(building.durationMin) : '??'}
+              </div>
+              <div className="tooltip-time">
+                {building.sessionStartedAt ? formatTimestamp(building.sessionStartedAt) : '--'}
+              </div>
+            </div>
             {art.map((line, i) => (
               <div key={i} className="building-line">{line}</div>
             ))}

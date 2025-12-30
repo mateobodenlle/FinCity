@@ -124,7 +124,9 @@ router.post('/', (req, res) => {
         position,
         createdAt: now,
         degradedAt: null,
-        status: 'active'
+        status: 'active',
+        durationMin,
+        sessionStartedAt: startedAt
       },
       gameState: {
         totalMoney: updatedState.total_money,

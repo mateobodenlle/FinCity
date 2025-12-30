@@ -64,6 +64,16 @@ export const queries = {
 
   getAllBuildings: db.prepare(`SELECT * FROM buildings ORDER BY created_at`),
 
+  getAllBuildingsWithSession: db.prepare(`
+    SELECT
+      b.*,
+      s.duration_min,
+      s.started_at as session_started_at
+    FROM buildings b
+    LEFT JOIN sessions s ON b.session_id = s.id
+    ORDER BY b.created_at
+  `),
+
   getBuildingsByLayer: db.prepare(`
     SELECT * FROM buildings WHERE layer = @layer ORDER BY position
   `),
