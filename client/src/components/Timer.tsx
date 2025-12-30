@@ -1,7 +1,8 @@
-import { useEffect, useCallback, useState } from 'react'
+import { useEffect, useCallback, useState, useRef } from 'react'
 import { useTimerStore } from '../stores/timerStore'
 import { useGameStore } from '../stores/gameStore'
 import { BuildingType } from '../core/types'
+import { playCompletionSound } from '../utils/sound'
 import './Timer.css'
 
 const TYPE_LABELS: Record<BuildingType, string> = {
@@ -11,6 +12,9 @@ const TYPE_LABELS: Record<BuildingType, string> = {
 }
 
 const PRESET_TIMES = [15, 25, 45, 60, 90]
+
+// Max overtime before auto-stop (2 hours in seconds)
+const MAX_OVERTIME_SECONDS = 2 * 60 * 60
 
 export default function Timer() {
   const {
@@ -30,6 +34,9 @@ export default function Timer() {
 
   const { addBuilding } = useGameStore()
 
+  // Track if we already played the completion sound
+  const hasPlayedSound = useRef(false)
+
   // Local state para forzar re-render cada segundo
   const [, setTick] = useState(0)
 
@@ -44,29 +51,48 @@ export default function Timer() {
     return () => clearInterval(interval)
   }, [isRunning])
 
+  // Reset sound flag when timer stops
+  useEffect(() => {
+    if (!isRunning) {
+      hasPlayedSound.current = false
+    }
+  }, [isRunning])
+
   // Calcular segundos transcurridos
   const elapsedSeconds = getElapsedSeconds()
+  const targetSeconds = targetMinutes * 60
+  const isOvertime = elapsedSeconds >= targetSeconds
+  const overtimeSeconds = Math.max(0, elapsedSeconds - targetSeconds)
 
-  // Check if timer completed
+  // Play sound when reaching target (only once)
   useEffect(() => {
-    if (isRunning && elapsedSeconds >= targetMinutes * 60) {
-      handleComplete()
+    if (isRunning && isOvertime && !hasPlayedSound.current) {
+      playCompletionSound()
+      hasPlayedSound.current = true
     }
-  }, [elapsedSeconds, targetMinutes, isRunning])
+  }, [isRunning, isOvertime])
 
-  const handleComplete = useCallback(async () => {
-    const { type, durationMin } = complete()
-    if (durationMin >= 1) {
-      await addBuilding(type, durationMin)
+  // Auto-stop if overtime exceeds 2 hours
+  useEffect(() => {
+    if (isRunning && overtimeSeconds >= MAX_OVERTIME_SECONDS) {
+      handleCompleteAtOriginal()
     }
-  }, [complete, addBuilding])
+  }, [isRunning, overtimeSeconds])
+
+  // Complete at original target time (ignore overtime)
+  const handleCompleteAtOriginal = useCallback(async () => {
+    const { type } = complete()
+    if (targetMinutes >= 15) {
+      await addBuilding(type, targetMinutes, targetMinutes)
+    }
+  }, [complete, addBuilding, targetMinutes])
 
   const handleEarlyComplete = async () => {
     const currentElapsed = getElapsedSeconds()
     const durationMin = Math.floor(currentElapsed / 60)
     if (durationMin >= 15) {
       const { type } = complete()
-      await addBuilding(type, durationMin)
+      await addBuilding(type, durationMin, targetMinutes)
     } else {
       cancel()
     }
@@ -78,8 +104,26 @@ export default function Timer() {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
   }
 
-  const remainingSeconds = Math.max(0, targetMinutes * 60 - elapsedSeconds)
-  const progress = Math.min((elapsedSeconds / (targetMinutes * 60)) * 100, 100)
+  const formatOvertime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60)
+    const secs = seconds % 60
+    return `+${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+  }
+
+  const remainingSeconds = Math.max(0, targetSeconds - elapsedSeconds)
+  const progress = Math.min((elapsedSeconds / targetSeconds) * 100, 100)
+
+  // Calculate current size category for display
+  const getCurrentSize = (mins: number) => {
+    if (mins >= 75) return 'XL'
+    if (mins >= 45) return 'L'
+    if (mins >= 25) return 'M'
+    if (mins >= 15) return 'S'
+    return '-'
+  }
+
+  const currentMins = Math.floor(elapsedSeconds / 60)
+  const currentSize = getCurrentSize(currentMins)
 
   return (
     <div className="panel timer">
@@ -127,14 +171,31 @@ export default function Timer() {
             Trabajando en: <span className={`type-label ${selectedType}`}>{TYPE_LABELS[selectedType]}</span>
           </div>
 
-          <div className="timer-display running">
-            <div className="time-remaining">{formatTime(remainingSeconds)}</div>
-            <div className="time-elapsed">+{formatTime(elapsedSeconds)}</div>
+          <div className={`timer-display running ${isOvertime ? 'overtime' : ''}`}>
+            {isOvertime ? (
+              <>
+                <div className="time-completed">COMPLETADO</div>
+                <div className="time-overtime">{formatOvertime(overtimeSeconds)}</div>
+                <div className="time-total">Total: {formatTime(elapsedSeconds)}</div>
+              </>
+            ) : (
+              <>
+                <div className="time-remaining">{formatTime(remainingSeconds)}</div>
+                <div className="time-elapsed">+{formatTime(elapsedSeconds)}</div>
+              </>
+            )}
           </div>
+
+          {isOvertime && (
+            <div className="overtime-info">
+              <span className="size-badge">{currentSize}</span>
+              <span className="bonus-text">+{currentMins - targetMinutes} min extra</span>
+            </div>
+          )}
 
           <div className="progress-bar">
             <div
-              className={`progress-fill ${selectedType}`}
+              className={`progress-fill ${selectedType} ${isOvertime ? 'complete' : ''}`}
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -154,7 +215,16 @@ export default function Timer() {
             </button>
           </div>
 
-          {elapsedSeconds < 60 * 15 && (
+          {isOvertime && (
+            <button
+              className="original-time-btn"
+              onClick={handleCompleteAtOriginal}
+            >
+              [ Guardar solo {targetMinutes}min ]
+            </button>
+          )}
+
+          {!isOvertime && elapsedSeconds < 60 * 15 && (
             <div className="min-warning">
               Mínimo 15 min para generar edificio
             </div>
@@ -162,7 +232,7 @@ export default function Timer() {
 
           {isPaused && (
             <div className="pause-indicator">
-              ⏸ PAUSADO
+              PAUSADO
             </div>
           )}
         </>

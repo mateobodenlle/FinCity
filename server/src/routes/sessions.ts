@@ -11,10 +11,18 @@ import {
 
 const router = Router()
 
+// Calculate overtime bonus (2% per extra minute, max 50%)
+function calculateOvertimeBonus(durationMin: number, targetMin: number): number {
+  if (durationMin <= targetMin) return 0
+  const extraMinutes = durationMin - targetMin
+  const bonusPercent = Math.min(extraMinutes * 0.02, 0.5) // 2% per min, max 50%
+  return bonusPercent
+}
+
 // Create a new session (and building)
 router.post('/', (req, res) => {
   try {
-    const { type, durationMin } = req.body
+    const { type, durationMin, targetMin } = req.body
 
     if (!type || !durationMin) {
       return res.status(400).json({ error: 'type and durationMin required' })
@@ -42,7 +50,14 @@ router.post('/', (req, res) => {
 
     // Calculate building properties
     const size = getSizeFromDuration(durationMin)
-    const baseRent = getBaseRent(size)
+    let baseRent = getBaseRent(size)
+
+    // Apply overtime bonus if targetMin was provided
+    if (targetMin && durationMin > targetMin) {
+      const bonus = calculateOvertimeBonus(durationMin, targetMin)
+      baseRent = baseRent * (1 + bonus)
+    }
+
     const layer = getLayerForSize(size)
 
     // Get next position in layer

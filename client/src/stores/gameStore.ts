@@ -19,7 +19,7 @@ interface GameStoreState {
 
   // Actions
   loadGameState: () => Promise<void>
-  addBuilding: (type: BuildingType, durationMin: number) => Promise<void>
+  addBuilding: (type: BuildingType, durationMin: number, targetMin?: number) => Promise<void>
   updateMoney: (amount: number) => void
   startRentLoop: () => () => void
 }
@@ -79,11 +79,12 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     }
   },
 
-  addBuilding: async (type: BuildingType, durationMin: number) => {
+  addBuilding: async (type: BuildingType, durationMin: number, targetMin?: number) => {
     try {
       const response = await axios.post(`${API_BASE}/sessions`, {
         type,
-        durationMin
+        durationMin,
+        targetMin
       })
 
       const { building, gameState: newState } = response.data
