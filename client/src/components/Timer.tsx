@@ -12,10 +12,11 @@ let targetTime = 0;
 let completed = false;
 
 self.onmessage = (e) => {
-  const { type, startTime, targetMs } = e.data;
+  const { type, startTime, targetMs, pausedTime } = e.data;
 
   if (type === 'start') {
-    targetTime = startTime + targetMs;
+    // Account for paused time: completion = startTime + targetMs + pausedTime
+    targetTime = startTime + targetMs + (pausedTime || 0);
     completed = false;
 
     if (intervalId) clearInterval(intervalId);
@@ -94,19 +95,21 @@ export default function Timer() {
 
   // Web Worker for background completion detection
   useEffect(() => {
-    if (!isRunning) {
+    if (!isRunning || isPaused) {
       getTimerWorker().postMessage({ type: 'stop' })
       return
     }
 
     const worker = getTimerWorker()
-    const startTime = useTimerStore.getState().startTime
+    const state = useTimerStore.getState()
+    const { startTime, pausedTime } = state
 
     if (startTime) {
       worker.postMessage({
         type: 'start',
         startTime,
-        targetMs: targetMinutes * 60 * 1000
+        targetMs: targetMinutes * 60 * 1000,
+        pausedTime
       })
 
       worker.onmessage = (e) => {
@@ -120,7 +123,7 @@ export default function Timer() {
     return () => {
       worker.postMessage({ type: 'stop' })
     }
-  }, [isRunning, targetMinutes])
+  }, [isRunning, isPaused, targetMinutes])
 
   // Reset sound flag when timer stops
   useEffect(() => {
