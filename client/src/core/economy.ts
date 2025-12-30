@@ -8,8 +8,8 @@ export const BASE_RENT: Record<BuildingSize, number> = {
   XL: 1.50
 }
 
-// Sleep mode: city sleeps after 2.5h of inactivity, reduces rent to 25%
-export const SLEEP_THRESHOLD_HOURS = 2.5
+// Sleep mode: city sleeps after 1h 4min of inactivity, reduces rent to 25%
+export const SLEEP_THRESHOLD_HOURS = 64 / 60 // 1h 4min
 export const SLEEP_PENALTY = 0.25
 
 // Size thresholds in minutes

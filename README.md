@@ -21,7 +21,7 @@ FinCity gamifica la productividad convirtiendo el tiempo de trabajo en una ciuda
 
 ### Sistema de penalizaciones
 
-- **Ciudad dormida**: -75% a todas las rentas si no completas ninguna sesión en 2.5 horas. La ciudad entra en modo nocturno con estrellas y luna ASCII.
+- **Ciudad dormida**: -75% a todas las rentas si no completas ninguna sesión en 1h 4min. La ciudad entra en modo nocturno con estrellas y luna ASCII.
 - **Impuesto de estudio**: -40% a todas las rentas si no completas una sesión de ESTUDIO en 48 horas.
 - **Degradación diaria**: Los edificios se degradan si no cumples el mínimo de trabajo diario.
 - **Edificios abandonados**: Dejan de generar renta completamente.
