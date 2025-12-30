@@ -1,7 +1,41 @@
+// Singleton AudioContext - browsers require user interaction to unlock
+let audioContext: AudioContext | null = null
+
+// Call this on user interaction (e.g., clicking START) to unlock audio
+export function unlockAudio() {
+  if (audioContext) return
+
+  try {
+    audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
+
+    // Create and play a silent buffer to unlock
+    const buffer = audioContext.createBuffer(1, 1, 22050)
+    const source = audioContext.createBufferSource()
+    source.buffer = buffer
+    source.connect(audioContext.destination)
+    source.start(0)
+
+    // Resume if suspended (required by some browsers)
+    if (audioContext.state === 'suspended') {
+      audioContext.resume()
+    }
+  } catch (e) {
+    console.warn('Could not unlock audio:', e)
+  }
+}
+
 // Generate a "tin" completion sound using Web Audio API
 export function playCompletionSound() {
   try {
-    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
+    // Create context if needed (fallback)
+    if (!audioContext) {
+      audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
+    }
+
+    // Resume if suspended
+    if (audioContext.state === 'suspended') {
+      audioContext.resume()
+    }
 
     // Create oscillator for the "tin" sound
     const oscillator = audioContext.createOscillator()
@@ -22,11 +56,6 @@ export function playCompletionSound() {
 
     oscillator.start(audioContext.currentTime)
     oscillator.stop(audioContext.currentTime + 0.3)
-
-    // Cleanup
-    setTimeout(() => {
-      audioContext.close()
-    }, 500)
   } catch (e) {
     console.warn('Could not play sound:', e)
   }

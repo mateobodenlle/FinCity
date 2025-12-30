@@ -2,7 +2,7 @@ import { useEffect, useCallback, useState, useRef } from 'react'
 import { useTimerStore } from '../stores/timerStore'
 import { useGameStore } from '../stores/gameStore'
 import { BuildingType } from '../core/types'
-import { playCompletionSound } from '../utils/sound'
+import { playCompletionSound, unlockAudio } from '../utils/sound'
 import './Timer.css'
 
 const TYPE_LABELS: Record<BuildingType, string> = {
@@ -160,7 +160,7 @@ export default function Timer() {
           </div>
 
           <div className="timer-actions">
-            <button className="start-btn" onClick={start}>
+            <button className="start-btn" onClick={() => { unlockAudio(); start(); }}>
               [ START ]
             </button>
           </div>
