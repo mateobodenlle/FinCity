@@ -37,14 +37,27 @@ self.onmessage = (e) => {
 };
 `
 
-// Create worker from blob
+// Create worker from blob with persistent message handler
 let timerWorker: Worker | null = null
+let onWorkerComplete: (() => void) | null = null
+
 function getTimerWorker(): Worker {
   if (!timerWorker) {
     const blob = new Blob([workerCode], { type: 'application/javascript' })
     timerWorker = new Worker(URL.createObjectURL(blob))
+
+    // Set up persistent message handler once
+    timerWorker.onmessage = (e) => {
+      if (e.data.type === 'complete' && onWorkerComplete) {
+        onWorkerComplete()
+      }
+    }
   }
   return timerWorker
+}
+
+function setWorkerCompleteCallback(callback: (() => void) | null) {
+  onWorkerComplete = callback
 }
 
 const TYPE_LABELS: Record<BuildingType, string> = {
@@ -97,12 +110,21 @@ export default function Timer() {
   useEffect(() => {
     if (!isRunning || isPaused) {
       getTimerWorker().postMessage({ type: 'stop' })
+      setWorkerCompleteCallback(null)
       return
     }
 
     const worker = getTimerWorker()
     const state = useTimerStore.getState()
     const { startTime, pausedTime } = state
+
+    // Set up callback that will be called when worker detects completion
+    setWorkerCompleteCallback(() => {
+      if (!hasPlayedSound.current) {
+        playCompletionSound()
+        hasPlayedSound.current = true
+      }
+    })
 
     if (startTime) {
       worker.postMessage({
@@ -111,17 +133,11 @@ export default function Timer() {
         targetMs: targetMinutes * 60 * 1000,
         pausedTime
       })
-
-      worker.onmessage = (e) => {
-        if (e.data.type === 'complete' && !hasPlayedSound.current) {
-          playCompletionSound()
-          hasPlayedSound.current = true
-        }
-      }
     }
 
     return () => {
       worker.postMessage({ type: 'stop' })
+      setWorkerCompleteCallback(null)
     }
   }, [isRunning, isPaused, targetMinutes])
 

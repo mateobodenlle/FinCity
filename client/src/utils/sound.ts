@@ -32,41 +32,38 @@ export function unlockAudio() {
 
 // Generate a "tin" completion sound using Web Audio API
 export function playCompletionSound() {
-  // If tab is hidden, show notification instead (browsers block audio in background)
-  if (document.hidden && 'Notification' in window && Notification.permission === 'granted') {
+  // Always show notification (works reliably even in background)
+  if ('Notification' in window && Notification.permission === 'granted') {
     new Notification('FinCity', {
       body: 'Tiempo completado!',
       icon: '/favicon.ico',
-      tag: 'timer-complete', // Prevents duplicate notifications
-      requireInteraction: false
+      tag: 'timer-complete',
+      requireInteraction: false,
+      silent: false
     })
   }
 
+  // Also try to play sound (may not work if tab is hidden)
   try {
-    // Create context if needed (fallback)
     if (!audioContext) {
       audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
     }
 
-    // Resume if suspended
     if (audioContext.state === 'suspended') {
       audioContext.resume()
     }
 
-    // Create oscillator for the "tin" sound
     const oscillator = audioContext.createOscillator()
     const gainNode = audioContext.createGain()
 
     oscillator.connect(gainNode)
     gainNode.connect(audioContext.destination)
 
-    // High-pitched "tin" sound
     oscillator.frequency.setValueAtTime(1200, audioContext.currentTime)
     oscillator.frequency.exponentialRampToValueAtTime(800, audioContext.currentTime + 0.1)
 
     oscillator.type = 'sine'
 
-    // Quick fade out
     gainNode.gain.setValueAtTime(0.3, audioContext.currentTime)
     gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3)
 
