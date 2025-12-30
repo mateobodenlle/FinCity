@@ -1,4 +1,5 @@
-import { useMemo } from 'react'
+import { useMemo, useState, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { useGameStore } from '../stores/gameStore'
 import { Building, BuildingType, GameState } from '../core/types'
 import { getBuildingArt } from '../ascii/buildings'
@@ -51,6 +52,51 @@ function formatRent(rentPerSecond: number): string {
   return `$${rentPerSecond.toFixed(2)}/s`
 }
 
+interface TooltipProps {
+  building: Building
+  gameState: GameState
+  studyTaxActive: boolean
+  position: { x: number; y: number }
+}
+
+function Tooltip({ building, gameState, studyTaxActive, position }: TooltipProps) {
+  const rentPerSecond = calculateBuildingRent(building, gameState, studyTaxActive)
+  const secondsSinceCreation = building.createdAt
+    ? Math.floor((Date.now() - new Date(building.createdAt).getTime()) / 1000)
+    : 0
+  const moneyGenerated = rentPerSecond * secondsSinceCreation
+
+  return createPortal(
+    <div
+      className="building-tooltip visible"
+      style={{
+        position: 'fixed',
+        left: position.x,
+        top: position.y,
+        transform: 'translateX(-50%)'
+      }}
+    >
+      <div className={`tooltip-type ${building.type}`}>
+        {TYPE_LABELS[building.type]}
+      </div>
+      <div className="tooltip-duration">
+        {building.durationMin ? formatDuration(building.durationMin) : '??'}
+      </div>
+      <div className="tooltip-time">
+        {building.sessionStartedAt ? formatTimestamp(building.sessionStartedAt) : '--'}
+      </div>
+      <div className="tooltip-divider"></div>
+      <div className="tooltip-rent">
+        {formatRent(rentPerSecond)}
+      </div>
+      <div className="tooltip-generated">
+        {formatMoney(moneyGenerated)}
+      </div>
+    </div>,
+    document.body
+  )
+}
+
 interface BuildingComponentProps {
   building: Building
   gameState: GameState
@@ -58,46 +104,49 @@ interface BuildingComponentProps {
 }
 
 function BuildingComponent({ building, gameState, studyTaxActive }: BuildingComponentProps) {
+  const [isHovered, setIsHovered] = useState(false)
+  const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 })
+  const buildingRef = useRef<HTMLDivElement>(null)
+
   const art = getBuildingArt(building.size, building.type, building.status)
   const layerConfig = LAYER_CONFIG[building.layer]
-
-  // Z-index: layer base + building ID (newer buildings have higher IDs = in front)
   const zIndex = layerConfig.baseZIndex + building.id
 
-  // Calculate rent and money generated
-  const rentPerSecond = calculateBuildingRent(building, gameState, studyTaxActive)
-  const secondsSinceCreation = building.createdAt
-    ? Math.floor((Date.now() - new Date(building.createdAt).getTime()) / 1000)
-    : 0
-  const moneyGenerated = rentPerSecond * secondsSinceCreation
+  const handleMouseEnter = () => {
+    if (buildingRef.current) {
+      const rect = buildingRef.current.getBoundingClientRect()
+      setTooltipPos({
+        x: rect.left + rect.width / 2,
+        y: rect.top - 8
+      })
+    }
+    setIsHovered(true)
+  }
+
+  const handleMouseLeave = () => {
+    setIsHovered(false)
+  }
 
   return (
     <div
+      ref={buildingRef}
       className={`building ${building.type} ${building.status}`}
       style={{
         opacity: layerConfig.opacity,
         transform: `translateY(${layerConfig.translateY}px)`,
         zIndex
       }}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
-      <div className="building-tooltip">
-        <div className={`tooltip-type ${building.type}`}>
-          {TYPE_LABELS[building.type]}
-        </div>
-        <div className="tooltip-duration">
-          {building.durationMin ? formatDuration(building.durationMin) : '??'}
-        </div>
-        <div className="tooltip-time">
-          {building.sessionStartedAt ? formatTimestamp(building.sessionStartedAt) : '--'}
-        </div>
-        <div className="tooltip-divider"></div>
-        <div className="tooltip-rent">
-          {formatRent(rentPerSecond)}
-        </div>
-        <div className="tooltip-generated">
-          {formatMoney(moneyGenerated)}
-        </div>
-      </div>
+      {isHovered && (
+        <Tooltip
+          building={building}
+          gameState={gameState}
+          studyTaxActive={studyTaxActive}
+          position={tooltipPos}
+        />
+      )}
       {art.map((line, i) => (
         <div key={i} className="building-line">{line}</div>
       ))}
