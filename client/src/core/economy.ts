@@ -91,8 +91,11 @@ export function isStudyTaxActive(studyLastSession: string | null): boolean {
   return hoursDiff > 48
 }
 
-// Check if city is sleeping (no session of any type in 2.5h)
+// Check if city is sleeping (no session of any type in 1h 4min)
 export function isCitySleeping(gameState: GameState): boolean {
+  // TEMP: Force sleep mode for testing
+  return true
+
   const { studyLastSession, osixLastSession, shearnLastSession } = gameState
 
   // Find the most recent session

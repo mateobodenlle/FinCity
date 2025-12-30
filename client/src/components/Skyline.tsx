@@ -180,20 +180,31 @@ export default function Skyline() {
         {citySleeping && (
           <div className="night-overlay">
             <div className="stars">
-              <span className="star" style={{ left: '10%', top: '15%' }}>*</span>
-              <span className="star" style={{ left: '25%', top: '8%' }}>.</span>
-              <span className="star" style={{ left: '40%', top: '20%' }}>*</span>
-              <span className="star" style={{ left: '55%', top: '5%' }}>.</span>
-              <span className="star" style={{ left: '70%', top: '18%' }}>*</span>
-              <span className="star" style={{ left: '85%', top: '12%' }}>.</span>
-              <span className="star" style={{ left: '15%', top: '25%' }}>.</span>
-              <span className="star" style={{ left: '60%', top: '28%' }}>*</span>
-              <span className="star" style={{ left: '90%', top: '22%' }}>.</span>
+              <span className="star big" style={{ left: '8%', top: '12%' }}>✦</span>
+              <span className="star" style={{ left: '18%', top: '6%' }}>·</span>
+              <span className="star big" style={{ left: '32%', top: '18%' }}>★</span>
+              <span className="star" style={{ left: '45%', top: '4%' }}>·</span>
+              <span className="star big" style={{ left: '58%', top: '14%' }}>✦</span>
+              <span className="star" style={{ left: '72%', top: '8%' }}>·</span>
+              <span className="star big" style={{ left: '85%', top: '20%' }}>★</span>
+              <span className="star" style={{ left: '12%', top: '28%' }}>·</span>
+              <span className="star big" style={{ left: '48%', top: '24%' }}>✦</span>
+              <span className="star" style={{ left: '65%', top: '30%' }}>·</span>
+              <span className="star" style={{ left: '78%', top: '6%' }}>·</span>
+              <span className="star big" style={{ left: '22%', top: '35%' }}>★</span>
             </div>
+            <div className="sleep-zzz" style={{ left: '15%', bottom: '45%' }}>z<span>z</span><span>Z</span></div>
+            <div className="sleep-zzz" style={{ left: '55%', bottom: '55%' }}>z<span>z</span><span>Z</span></div>
+            <div className="sleep-zzz" style={{ left: '80%', bottom: '40%' }}>z<span>z</span><span>Z</span></div>
             <div className="moon">
-              <pre>{`  _
- ( )
-  ~`}</pre>
+              <pre>{`      _.--._
+    .'      '.
+   /   _  _   \\
+  |  (o)(o)   |
+  |     <     |
+   \\  .---.  /
+    '.____.'
+`}</pre>
             </div>
           </div>
         )}

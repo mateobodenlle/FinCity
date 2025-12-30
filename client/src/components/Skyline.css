@@ -196,9 +196,15 @@
 
 .star {
   position: absolute;
-  color: rgba(255, 255, 200, 0.6);
+  color: rgba(255, 255, 150, 0.7);
   animation: twinkle 2s ease-in-out infinite;
-  font-size: 0.8rem;
+  font-size: 1rem;
+}
+
+.star.big {
+  font-size: 1.4rem;
+  color: rgba(255, 255, 100, 0.9);
+  text-shadow: 0 0 8px rgba(255, 255, 150, 0.8);
 }
 
 .star:nth-child(odd) {
@@ -209,23 +215,60 @@
   animation-delay: 1s;
 }
 
+.star:nth-child(4n) {
+  animation-delay: 1.5s;
+}
+
 @keyframes twinkle {
-  0%, 100% { opacity: 0.3; }
-  50% { opacity: 0.9; }
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
 }
 
 .moon {
   position: absolute;
-  top: 5%;
-  right: 10%;
-  color: rgba(255, 255, 200, 0.7);
-  font-size: 0.6rem;
+  top: 3%;
+  right: 5%;
+  color: #ffffcc;
+  font-size: 0.55rem;
   line-height: 1;
+  text-shadow: 0 0 15px rgba(255, 255, 200, 0.6);
 }
 
 .moon pre {
   margin: 0;
   font-family: inherit;
+}
+
+.sleep-zzz {
+  position: absolute;
+  color: rgba(150, 150, 255, 0.8);
+  font-size: 1rem;
+  font-weight: bold;
+  animation: float-zzz 3s ease-in-out infinite;
+  text-shadow: 0 0 5px rgba(150, 150, 255, 0.5);
+}
+
+.sleep-zzz span:nth-child(1) {
+  font-size: 1.2rem;
+  margin-left: 3px;
+  animation: float-zzz 3s ease-in-out infinite 0.3s;
+}
+
+.sleep-zzz span:nth-child(2) {
+  font-size: 1.5rem;
+  margin-left: 3px;
+  animation: float-zzz 3s ease-in-out infinite 0.6s;
+}
+
+@keyframes float-zzz {
+  0%, 100% {
+    transform: translateY(0);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translateY(-8px);
+    opacity: 1;
+  }
 }
 
 .skyline-buildings.dimmed {
