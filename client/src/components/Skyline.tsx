@@ -56,11 +56,12 @@ interface TooltipProps {
   building: Building
   gameState: GameState
   studyTaxActive: boolean
+  citySleeping: boolean
   position: { x: number; y: number }
 }
 
-function Tooltip({ building, gameState, studyTaxActive, position }: TooltipProps) {
-  const rentPerSecond = calculateBuildingRent(building, gameState, studyTaxActive)
+function Tooltip({ building, gameState, studyTaxActive, citySleeping, position }: TooltipProps) {
+  const rentPerSecond = calculateBuildingRent(building, gameState, studyTaxActive, citySleeping)
   const secondsSinceCreation = building.createdAt
     ? Math.floor((Date.now() - new Date(building.createdAt).getTime()) / 1000)
     : 0
@@ -101,9 +102,10 @@ interface BuildingComponentProps {
   building: Building
   gameState: GameState
   studyTaxActive: boolean
+  citySleeping: boolean
 }
 
-function BuildingComponent({ building, gameState, studyTaxActive }: BuildingComponentProps) {
+function BuildingComponent({ building, gameState, studyTaxActive, citySleeping }: BuildingComponentProps) {
   const [isHovered, setIsHovered] = useState(false)
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 })
   const buildingRef = useRef<HTMLDivElement>(null)
@@ -144,6 +146,7 @@ function BuildingComponent({ building, gameState, studyTaxActive }: BuildingComp
           building={building}
           gameState={gameState}
           studyTaxActive={studyTaxActive}
+          citySleeping={citySleeping}
           position={tooltipPos}
         />
       )}
@@ -155,7 +158,7 @@ function BuildingComponent({ building, gameState, studyTaxActive }: BuildingComp
 }
 
 export default function Skyline() {
-  const { buildings, gameState } = useGameStore()
+  const { buildings, gameState, citySleeping } = useGameStore()
 
   // Sort all buildings by position (global ordering, left to right)
   const sortedBuildings = useMemo(() =>
@@ -167,19 +170,42 @@ export default function Skyline() {
   const totalBuildings = buildings.length
 
   return (
-    <div className="panel skyline">
+    <div className={`panel skyline ${citySleeping ? 'sleeping' : ''}`}>
       <div className="panel-header">
         {'>'} SKYLINE [{totalBuildings} edificios]
+        {citySleeping && <span className="sleep-indicator"> [ZZZ]</span>}
       </div>
 
       <div className="skyline-viewport">
-        <div className="skyline-buildings">
+        {citySleeping && (
+          <div className="night-overlay">
+            <div className="stars">
+              <span className="star" style={{ left: '10%', top: '15%' }}>*</span>
+              <span className="star" style={{ left: '25%', top: '8%' }}>.</span>
+              <span className="star" style={{ left: '40%', top: '20%' }}>*</span>
+              <span className="star" style={{ left: '55%', top: '5%' }}>.</span>
+              <span className="star" style={{ left: '70%', top: '18%' }}>*</span>
+              <span className="star" style={{ left: '85%', top: '12%' }}>.</span>
+              <span className="star" style={{ left: '15%', top: '25%' }}>.</span>
+              <span className="star" style={{ left: '60%', top: '28%' }}>*</span>
+              <span className="star" style={{ left: '90%', top: '22%' }}>.</span>
+            </div>
+            <div className="moon">
+              <pre>{`  _
+ ( )
+  ~`}</pre>
+            </div>
+          </div>
+        )}
+
+        <div className={`skyline-buildings ${citySleeping ? 'dimmed' : ''}`}>
           {sortedBuildings.map(building => (
             <BuildingComponent
               key={building.id}
               building={building}
               gameState={gameState}
               studyTaxActive={studyTaxActive}
+              citySleeping={citySleeping}
             />
           ))}
         </div>

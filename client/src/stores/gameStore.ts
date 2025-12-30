@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import axios from 'axios'
 import { Building, GameState, BuildingType } from '../core/types'
-import { isStudyTaxActive, getRentBreakdown } from '../core/economy'
+import { isStudyTaxActive, isCitySleeping, getRentBreakdown } from '../core/economy'
 
 interface GameStoreState {
   // Data
@@ -16,6 +16,7 @@ interface GameStoreState {
   osixRent: number
   shearnRent: number
   studyTaxActive: boolean
+  citySleeping: boolean
 
   // Actions
   loadGameState: () => Promise<void>
@@ -46,6 +47,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   osixRent: 0,
   shearnRent: 0,
   studyTaxActive: false,
+  citySleeping: false,
 
   loadGameState: async () => {
     try {
@@ -60,7 +62,8 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       const todayStats = statsRes.data
 
       const studyTax = isStudyTaxActive(gameState.studyLastSession)
-      const rentBreakdown = getRentBreakdown(buildings, gameState, studyTax)
+      const sleeping = isCitySleeping(gameState)
+      const rentBreakdown = getRentBreakdown(buildings, gameState, studyTax, sleeping)
       const totalRent = rentBreakdown.osix + rentBreakdown.shearn
 
       set({
@@ -72,7 +75,8 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
         rentPerSecond: totalRent,
         osixRent: rentBreakdown.osix,
         shearnRent: rentBreakdown.shearn,
-        studyTaxActive: studyTax
+        studyTaxActive: studyTax,
+        citySleeping: sleeping
       })
     } catch (error) {
       console.error('Failed to load game state:', error)
@@ -94,7 +98,9 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       const updatedGameState = { ...gameState, ...newState }
 
       const studyTax = isStudyTaxActive(updatedGameState.studyLastSession)
-      const rentBreakdown = getRentBreakdown(updatedBuildings, updatedGameState, studyTax)
+      // City wakes up when a new session is completed
+      const sleeping = isCitySleeping(updatedGameState)
+      const rentBreakdown = getRentBreakdown(updatedBuildings, updatedGameState, studyTax, sleeping)
 
       set({
         buildings: updatedBuildings,
@@ -102,7 +108,8 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
         rentPerSecond: rentBreakdown.osix + rentBreakdown.shearn,
         osixRent: rentBreakdown.osix,
         shearnRent: rentBreakdown.shearn,
-        studyTaxActive: studyTax
+        studyTaxActive: studyTax,
+        citySleeping: sleeping
       })
     } catch (error) {
       console.error('Failed to add building:', error)
@@ -124,6 +131,25 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       }
     }, 100)
 
+    // Check sleep status and recalculate rents every 30 seconds
+    const sleepCheckInterval = setInterval(() => {
+      const { buildings, gameState, citySleeping } = get()
+      const newSleepingState = isCitySleeping(gameState)
+
+      // Only update if sleep state changed
+      if (newSleepingState !== citySleeping) {
+        const studyTax = isStudyTaxActive(gameState.studyLastSession)
+        const rentBreakdown = getRentBreakdown(buildings, gameState, studyTax, newSleepingState)
+
+        set({
+          citySleeping: newSleepingState,
+          rentPerSecond: rentBreakdown.osix + rentBreakdown.shearn,
+          osixRent: rentBreakdown.osix,
+          shearnRent: rentBreakdown.shearn
+        })
+      }
+    }, 30000)
+
     // Save money to server every 10 seconds
     const saveInterval = setInterval(async () => {
       const { totalMoney } = get()
@@ -136,6 +162,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
 
     return () => {
       clearInterval(interval)
+      clearInterval(sleepCheckInterval)
       clearInterval(saveInterval)
     }
   }

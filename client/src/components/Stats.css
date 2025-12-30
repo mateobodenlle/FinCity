@@ -98,3 +98,35 @@
   text-align: center;
   font-size: 0.75rem;
 }
+
+/* Sleep mode styles */
+.rent-per-second.sleeping {
+  color: var(--text-dim);
+  opacity: 0.7;
+}
+
+.sleep-icon {
+  color: #8888aa;
+  animation: sleep-pulse 2s ease-in-out infinite;
+  font-size: 0.75em;
+}
+
+@keyframes sleep-pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+.sleep-warning {
+  padding: 0.4rem;
+  background-color: rgba(100, 100, 150, 0.15);
+  border: 1px solid #6666aa;
+  color: #9999cc;
+  text-align: center;
+  font-size: 0.75rem;
+  animation: sleep-glow 3s ease-in-out infinite;
+}
+
+@keyframes sleep-glow {
+  0%, 100% { border-color: #4444aa; }
+  50% { border-color: #8888cc; }
+}

@@ -28,6 +28,7 @@ export default function Stats() {
     buildings,
     gameState,
     studyTaxActive,
+    citySleeping,
     dayNumber
   } = useGameStore()
 
@@ -41,7 +42,10 @@ export default function Stats() {
 
       <div className="money-display">
         <div className="total-money">{formatMoney(totalMoney)}</div>
-        <div className="rent-per-second">+{formatRent(rentPerSecond)}</div>
+        <div className={`rent-per-second ${citySleeping ? 'sleeping' : ''}`}>
+          +{formatRent(rentPerSecond)}
+          {citySleeping && <span className="sleep-icon"> ZZZ</span>}
+        </div>
       </div>
 
       <div className="day-counter">
@@ -73,9 +77,15 @@ export default function Stats() {
         </div>
       </div>
 
+      {citySleeping && (
+        <div className="sleep-warning">
+          CIUDAD DORMIDA: -75% rendimiento
+        </div>
+      )}
+
       {studyTaxActive && (
         <div className="tax-warning">
-          ⚠ DEUDA ACADÉMICA: -40% rendimiento global
+          DEUDA ACADÉMICA: -40% rendimiento global
         </div>
       )}
     </div>

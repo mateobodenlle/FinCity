@@ -8,6 +8,10 @@ export const BASE_RENT: Record<BuildingSize, number> = {
   XL: 1.50
 }
 
+// Sleep mode: city sleeps after 2.5h of inactivity, reduces rent to 25%
+export const SLEEP_THRESHOLD_HOURS = 2.5
+export const SLEEP_PENALTY = 0.25
+
 // Size thresholds in minutes
 export function getSizeFromDuration(minutes: number): BuildingSize {
   if (minutes >= 75) return 'XL'
@@ -29,7 +33,8 @@ export function getShearnMultiplier(daysSinceStart: number): number {
 export function calculateBuildingRent(
   building: Building,
   gameState: GameState,
-  studyTaxActive: boolean
+  studyTaxActive: boolean,
+  citySleeping: boolean = false
 ): number {
   if (building.status === 'abandoned') return 0
 
@@ -55,6 +60,11 @@ export function calculateBuildingRent(
     rent *= 0.6
   }
 
+  // Apply sleep penalty (reduces to 25%)
+  if (citySleeping) {
+    rent *= SLEEP_PENALTY
+  }
+
   return rent
 }
 
@@ -62,10 +72,11 @@ export function calculateBuildingRent(
 export function calculateTotalRent(
   buildings: Building[],
   gameState: GameState,
-  studyTaxActive: boolean
+  studyTaxActive: boolean,
+  citySleeping: boolean = false
 ): number {
   return buildings.reduce((total, building) => {
-    return total + calculateBuildingRent(building, gameState, studyTaxActive)
+    return total + calculateBuildingRent(building, gameState, studyTaxActive, citySleeping)
   }, 0)
 }
 
@@ -78,6 +89,24 @@ export function isStudyTaxActive(studyLastSession: string | null): boolean {
   const hoursDiff = (now.getTime() - lastSession.getTime()) / (1000 * 60 * 60)
 
   return hoursDiff > 48
+}
+
+// Check if city is sleeping (no session of any type in 2.5h)
+export function isCitySleeping(gameState: GameState): boolean {
+  const { studyLastSession, osixLastSession, shearnLastSession } = gameState
+
+  // Find the most recent session
+  const sessions = [studyLastSession, osixLastSession, shearnLastSession]
+    .filter((s): s is string => s !== null)
+    .map(s => new Date(s).getTime())
+
+  if (sessions.length === 0) return true
+
+  const mostRecent = Math.max(...sessions)
+  const now = Date.now()
+  const hoursSinceLastSession = (now - mostRecent) / (1000 * 60 * 60)
+
+  return hoursSinceLastSession > SLEEP_THRESHOLD_HOURS
 }
 
 // Check if a building type needs attention (approaching 48h limit)
@@ -106,13 +135,14 @@ export function calculateDegradation(minutesWorked: number): number {
 export function getRentBreakdown(
   buildings: Building[],
   gameState: GameState,
-  studyTaxActive: boolean
+  studyTaxActive: boolean,
+  citySleeping: boolean = false
 ): { osix: number; shearn: number } {
   const osixBuildings = buildings.filter(b => b.type === 'osix')
   const shearnBuildings = buildings.filter(b => b.type === 'shearn')
 
   return {
-    osix: osixBuildings.reduce((sum, b) => sum + calculateBuildingRent(b, gameState, studyTaxActive), 0),
-    shearn: shearnBuildings.reduce((sum, b) => sum + calculateBuildingRent(b, gameState, studyTaxActive), 0)
+    osix: osixBuildings.reduce((sum, b) => sum + calculateBuildingRent(b, gameState, studyTaxActive, citySleeping), 0),
+    shearn: shearnBuildings.reduce((sum, b) => sum + calculateBuildingRent(b, gameState, studyTaxActive, citySleeping), 0)
   }
 }
